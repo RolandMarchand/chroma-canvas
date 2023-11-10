@@ -1,0 +1,57 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+#wait-time {
+    font-family: 'Fira Sans', sans-serif;
+    visibility: hidden;
+}
+
+#grid-container {
+    display: grid;
+    grid-template-columns: repeat(32, 20px);
+    gap: 0px;
+    margin-bottom: 20px;
+    border: 1px solid #DDD;
+}
+
+.grid-cell {
+    width: 20px;
+    height: 20px;
+    border: 0px;
+}
+
+#color-palette {
+    display: flex;
+    gap: 0px;
+    margin-bottom: 0px;
+}
+
+.color-box {
+    width: 20px;
+    height: 20px;
+    border: 0px solid #000;
+    cursor: pointer;
+}
+
+#color-pointer {
+    display: flex;
+    flex-direction: row;
+    cursor: default;
+}
+
+.pointer-box {
+    width: 20px;
+    height: 20px;
+}
+
+.pointer-paragraph {
+    margin: 0px;
+    visibility: hidden;
+    text-align: center;
+}
