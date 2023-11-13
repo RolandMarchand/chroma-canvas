@@ -160,7 +160,8 @@ func handleWebSocketConnection(conn *websocket.Conn, db *Database, ip *string) {
 		if approved, _ := approveSetRequest(ip, db); !approved {
 			// Notify the client of the limit
 			seconds := fmt.Sprintf("%.0f", SET_TIMEOUT.Seconds())
-			msg := "rate limit exceeded of 1 request per " + seconds + " seconds"
+			msg := "rate limit exceeded of 1 request per " +
+				seconds + " seconds"
 			data, _ := json.Marshal(map[string]string{"error": msg})
 			err := conn.WriteMessage(websocket.TextMessage, data)
 
@@ -186,7 +187,9 @@ func handleWebSocketConnection(conn *websocket.Conn, db *Database, ip *string) {
 		}
 
 		// Notify the client of the expected wait time
-		data, _ := json.Marshal(map[string]float64{"waitSeconds": SET_TIMEOUT.Seconds()})
+		data, _ := json.Marshal(map[string]float64{
+			"waitSeconds": SET_TIMEOUT.Seconds(),
+		})
 		conn.WriteMessage(websocket.TextMessage, data)
 	}
 }
@@ -195,7 +198,8 @@ func handleBroadcast() {
 	for {
 		pixel := <- broadcast
 		for client := range clients {
-			log.Printf("debug: to %s: %v\n", client.LocalAddr().String(), pixel)
+			log.Printf("debug: to %s: %v\n",
+				client.LocalAddr().String(), pixel)
 			err := client.WriteJSON(pixel)
 			if err != nil {
 				log.Println("Warning: connection closed: ", err)
