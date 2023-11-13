@@ -21,15 +21,19 @@ type Database struct {
 }
 
 func getDatabaseConnection() Database {
-	Password := os.Getenv("REDIS_PASSWORD")
-	Username := os.Getenv("REDIS_USERNAME")
+	password := os.Getenv("REDIS_PASSWORD")
+	username := os.Getenv("REDIS_USERNAME")
 	db, _ := strconv.Atoi(os.Getenv("REDIS_DATABASE"))
+	addr := os.Getenv("REDIS_ADDRESS")
+	if addr == "" {
+		addr = "localhost:6379"
+	}
 
 	ret := Database{
 		client: redis.NewClient(&redis.Options{
-			Addr: "lazarusoverlook.com:6379",
-			Password: Password,
-			Username: Username,
+			Addr: addr,
+			Password: password,
+			Username: username,
 			DB: db,
 		}),
 		context: context.Background(),
