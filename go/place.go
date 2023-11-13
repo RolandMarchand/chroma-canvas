@@ -71,8 +71,8 @@ var (
 	}
 )
 
-const PIXELS_ROWS = 32
-const PIXELS_COLUMNS = 32
+const MAX_PIXEL_ROWS = 1024
+const MAX_PIXEL_COLUMNS = 1024
 const COLOR_DEFAULT = "#FFFFFF"
 
 type PixelData struct {
@@ -120,10 +120,11 @@ func approveGetRequest(ip *string, db *Database) (bool, time.Duration) {
 	return false, GET_TIMEOUT - time.Since(since)
 }
 
-func getPixels(db *Database) *[PIXELS_COLUMNS][PIXELS_ROWS]string {
-	var ret [PIXELS_COLUMNS][PIXELS_ROWS]string
-	for x := 0; x < PIXELS_COLUMNS; x++ {
-		for y := 0; y < PIXELS_ROWS; y++ {
+func getPixels(db *Database, columns, rows int) [][]string {
+	ret := make([][]string, columns)
+	for x := 0; x < columns; x++ {
+		ret[x] = make([]string, rows)
+		for y := 0; y < rows; y++ {
 			key := strconv.Itoa(x) + "x" + strconv.Itoa(y)
 			color, err := db.client.Get(db.context, key).Result()
 			if err == redis.Nil {
@@ -135,7 +136,7 @@ func getPixels(db *Database) *[PIXELS_COLUMNS][PIXELS_ROWS]string {
 			}
 		}
 	}
-	return &ret;
+	return ret;
 }
 
 func handleWebSocketConnection(conn *websocket.Conn, db *Database, ip *string) {
@@ -218,8 +219,10 @@ func main() {
 	db := getDatabaseConnection()
 	defer db.client.Close()
 
-	gin.SetMode(gin.ReleaseMode)
-	//	r := gin.New()
+	var debug_mode bool = os.Getenv("PLACE_RELEASE_BUILD") != "release"
+	if !debug_mode {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
 	r.SetTrustedProxies(nil)
 	r.Use(Middleware)
@@ -245,7 +248,28 @@ func main() {
 			c.AbortWithStatus(http.StatusTooManyRequests)
 			return
 		}
-		pixels := getPixels(&db)
+
+		columns := c.GetInt("columns")
+		rows := c.GetInt("columns")
+
+		if columns > MAX_PIXEL_COLUMNS{
+			log.Println("Notice: ", ip,
+				": request entity too large: ",
+				"request columns ", columns,
+				" is over max allowed of ", MAX_PIXEL_COLUMNS)
+			c.AbortWithStatus(http.StatusRequestEntityTooLarge)
+			return
+		}
+		if rows > MAX_PIXEL_ROWS{
+			log.Println("Notice: ", ip,
+				": request entity too large: ",
+				"request rows ", rows,
+				" is over max allowed of ", MAX_PIXEL_ROWS)
+			c.AbortWithStatus(http.StatusRequestEntityTooLarge)
+			return
+		}
+
+		pixels := getPixels(&db, columns, rows)
 		_, timeLeft := approveSetRequest(&ip, &db)
 		data, _ := json.Marshal(map[string]interface{}{
 			"pixels": pixels,
@@ -256,6 +280,14 @@ func main() {
 		startGetTimeout(&ip, &db)
 	})
 	go handleBroadcast()
-	Port := os.Getenv("PLACE_PORT")
-	r.RunTLS(":" + Port, "fullchain.pem", "privkey.pem")
+
+	port := os.Getenv("PLACE_PORT")
+	if port == "" {
+		port = "37372"
+	}
+	if !debug_mode {
+		r.RunTLS(":" + port, "fullchain.pem", "privkey.pem")
+	} else {
+		r.Run(":" + port)
+	}
 }

@@ -26,6 +26,15 @@ This project is a simplified version of the popular r/Place platform, allowing u
 2. Choose a color from the palette.
 3. Click on the canvas to place pixels collaboratively with other users.
 
+### Environment Variables
+
+- `REDIS_USERNAME` defaults to nothing
+- `REDIS_PASSWORD` defaults to nothing
+- `REDIS_DATABASE` defaults to 0
+- `REDIS_ADDRESS` defaults to `localhost:6379`
+- `PLACE_RELEASE_BUILD` has 2 values: `release` and anything else is considered `debug`
+- `PLACE_PORT` defaults to 37372
+
 ### Contributing
 
 Contributions are welcome! If you have suggestions or improvements, please open an issue or create a pull request.
