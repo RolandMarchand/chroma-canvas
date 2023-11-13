@@ -5,13 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>r/place Clone</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="button.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   </head>
+
   <body>
+    <a href="https://github.com/RolandMarchand/place" target="_blank">
+      <img id="github-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Github_logo_svg.svg/600px-Github_logo_svg.svg.png?20230420150203" alt="github">
+    </a>
+    
     <h1 id="wait-time"></h1>
-    <div id="grid-container"></div>
+    <div style="display:flex; flex-direction:column;">
+      <button id="lightness-button" onclick="SwitchLightnessMode()">DARK</button>
+      <div id="grid-container">
+      </div>
+    </div>
     <div id="color-palette"></div>
     <div id="color-pointer"></div>
-
     <script src="script.js"></script>
   </body>
 </html>

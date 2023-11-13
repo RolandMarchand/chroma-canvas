@@ -1,9 +1,30 @@
+let darkMode = document.cookie.split(';')[0].trim().split('=')[1];
+if (darkMode === "true") {
+    let button = document.getElementById('lightness-button');
+    button.innerText = 'LIGHT';
+    document.body.classList.toggle('dark-mode');
+}
+
+function SwitchLightnessMode() {
+    document.cookie = "isDark=" + darkMode + "; path=/; SameSite=Strict";
+    document.body.classList.toggle('dark-mode');
+    let button = document.getElementById('lightness-button');
+    if (button.innerText === 'LIGHT') {
+	button.innerText = 'DARK';
+	document.cookie = "isDark=false; path=/; SameSite=Strict";
+    } else {
+	document.cookie = "isDark=true; path=/; SameSite=Strict";
+	button.innerText = 'LIGHT';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const gridContainer = document.getElementById('grid-container');
     const colorPalette = document.getElementById('color-palette');
     const colorPointer = document.getElementById('color-pointer');
     const waitTimeHeader = document.getElementById('wait-time');
-    const gridSize = 32;
+    const gridSize = 64;
+    gridContainer.style.gridTemplateColumns = "repeat(" + gridSize + ", 20px)";
 
     const serverAddress = 'lazarusoverlook.com:37372';
 
@@ -79,10 +100,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     setCurrentColor(colors[0], colorPointer.childNodes[0].childNodes[0]);
 
-    const socket = new WebSocket('ws://' + serverAddress + '/ws');
+    const socket = new WebSocket('wss://' + serverAddress + '/ws');
 
     socket.addEventListener('open', (event) => {
-	fetch('https://' + serverAddress, {
+	col = encodeURIComponent('columns') + '=' + encodeURIComponent(gridSize);
+	row = encodeURIComponent('rows') + '=' + encodeURIComponent(gridSize);
+	fetch('https://' + serverAddress + '?' + col + '&' + row, {
 	    method: 'GET',
 	    headers: {
 		'Content-Type': 'application/json',
@@ -117,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	startCountdown(Math.floor(json.timeLeft));
 	pixels.forEach((array, x) => {
 	    array.forEach((color, y) => {
-		cells[y * gridSize + x].style.backgroundColor = color;
+		cells[x * gridSize + y].style.backgroundColor = color;
 	    });
 	});
     }
@@ -137,4 +160,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	    clearInterval(intervalId);
 	}, (fromSeconds + 1) * 1000);
     }
+
+
 });

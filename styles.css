@@ -3,8 +3,30 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
-    margin: 0;
+}
+
+body.dark-mode {
+    background-color: #111;
+    color: #fff;
+}
+
+#lightness-button {
+    width: 10%;
+    align-self: end;
+    text-align: center;
+    margin-top: 20px;
+}
+
+#github-logo {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 2%;
+    filter: invert(1);
+}
+
+.dark-mode #github-logo {
+    filter: invert(0);
 }
 
 #wait-time {
@@ -14,10 +36,15 @@ body {
 
 #grid-container {
     display: grid;
-    grid-template-columns: repeat(32, 20px);
+    grid-template-columns: repeat(64, 20px);
     gap: 0px;
+    margin-top: 5px;
     margin-bottom: 20px;
     border: 1px solid #DDD;
+}
+
+.dark-mode #grid-container {
+    border: 1px solid #333
 }
 
 .grid-cell {
