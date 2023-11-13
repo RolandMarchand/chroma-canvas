@@ -23,20 +23,22 @@ type Database struct {
 func getDatabaseConnection() Database {
 	Password := os.Getenv("REDIS_PASSWORD")
 	Username := os.Getenv("REDIS_USERNAME")
-	db := Database{
+	db, _ := strconv.Atoi(os.Getenv("REDIS_DATABASE"))
+
+	ret := Database{
 		client: redis.NewClient(&redis.Options{
 			Addr: "lazarusoverlook.com:6379",
 			Password: Password,
 			Username: Username,
-			DB: 0,
+			DB: db,
 		}),
 		context: context.Background(),
 	}
-	_, err := db.client.Ping(db.context).Result()
+	_, err := ret.client.Ping(ret.context).Result()
 	if err != nil {
 		panic(err)
 	}
-	return db
+	return ret
 }
 
 func Middleware(c *gin.Context) {
