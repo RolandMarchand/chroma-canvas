@@ -128,11 +128,11 @@ func getPixels(db *Database, columns, rows int) [][]string {
 			key := strconv.Itoa(x) + "x" + strconv.Itoa(y)
 			color, err := db.client.Get(db.context, key).Result()
 			if err == redis.Nil {
-				ret[y][x] = COLOR_DEFAULT
+				ret[x][y] = COLOR_DEFAULT
 			} else if err != nil {
 				panic(err)
 			} else {
-				ret[y][x] = color
+				ret[x][y] = color
 			}
 		}
 	}
@@ -249,8 +249,18 @@ func main() {
 			return
 		}
 
-		columns := c.GetInt("columns")
-		rows := c.GetInt("columns")
+		columns, err := strconv.Atoi(c.Query("columns"))
+		if err != nil {
+			log.Println("Warning: bad request: " + c.Query("columns"))
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		rows, err := strconv.Atoi(c.Query("rows"))
+		if err != nil {
+			log.Println("Warning: bad request: " + c.Query("rows"))
+			c.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
 
 		if columns > MAX_PIXEL_COLUMNS{
 			log.Println("Notice: ", ip,
@@ -271,10 +281,13 @@ func main() {
 
 		pixels := getPixels(&db, columns, rows)
 		_, timeLeft := approveSetRequest(&ip, &db)
-		data, _ := json.Marshal(map[string]interface{}{
+		data, err := json.Marshal(map[string]interface{}{
 			"pixels": pixels,
 			"timeLeft": timeLeft.Seconds(),
 		})
+		if err != nil {
+			panic(err)
+		}
 		c.Data(http.StatusOK, "application/json", data)
 		// Forbid GET spam
 		startGetTimeout(&ip, &db)
