@@ -155,10 +155,8 @@ func allowPixelPlacement(conn *websocket.Conn, db *database, ip *string, pixel p
 	log.Printf("debug: from %s: %v\n", *ip, pixel)
 	key := pixel.X + "x" + pixel.Y
 
-	clientMutex.Lock()
 	startSetTimeout(ip, db)
 	err := db.client.Set(db.context, key, pixel.Color, 0).Err()
-	clientMutex.Unlock()
 	if err != nil {
 		panic(err)
 	}
