@@ -88,7 +88,7 @@ func startSetTimeout(ip *string, db *database) {
 	db.client.Set(db.context, "set_timeout:"+*ip, now, setTimeout)
 }
 
-func startgetTimeout(ip *string, db *database) {
+func startGetTimeout(ip *string, db *database) {
 	now, _ := time.Now().MarshalText()
 	db.client.Set(db.context, "get_timeout:"+*ip, now, getTimeout)
 }
@@ -204,10 +204,14 @@ func handleWebSocketConnection(conn *websocket.Conn, db *database, ip *string) {
 	defer conn.Close()
 	defer wg.Wait()
 	defer close(message)
+	defer clientMutex.Unlock()
 	defer delete(clients, conn)
+	defer clientMutex.Lock()
 
 	var pixel pixelData
+	clientMutex.Lock()
 	broadcastedSignal := clients[conn]
+	clientMutex.Unlock()
 	go read()
 
 	for {
@@ -263,12 +267,74 @@ func handleWebSocketConnection(conn *websocket.Conn, db *database, ip *string) {
 func handleBroadcast() {
 	for {
 		pixel := <-broadcast
-		for client, channel := range clients {
+
+		clientsCpy := make(map[*websocket.Conn]chan pixelData)
+		clientMutex.Lock()
+		for key, value := range clients {
+			clientsCpy[key] = value
+		}
+		clientMutex.Unlock()
+
+		for client, channel := range clientsCpy {
 			log.Printf("debug: to %s: %v\n",
 				client.LocalAddr().String(), pixel)
 			channel <- pixel
 		}
 	}
+}
+
+func createWebSocket(c *gin.Context, db *database) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Println("Error: ", err)
+		c.JSON(http.StatusInternalServerError,
+			gin.H{"error": err.Error()})
+		return
+	}
+
+	clientMutex.Lock()
+	clients[conn] = make(chan pixelData)
+	clientMutex.Unlock()
+
+	ip := c.ClientIP()
+	go handleWebSocketConnection(conn, db, &ip)
+}
+
+func checkGridDimensions(c *gin.Context) (rows, columns int, approved bool) {
+	columns, err := strconv.Atoi(c.Query("columns"))
+	if err != nil {
+		log.Println("Warning: bad request: " + c.Query("columns"))
+		c.AbortWithStatus(http.StatusBadRequest)
+		approved = false
+		return
+	}
+	rows, err = strconv.Atoi(c.Query("rows"))
+	if err != nil {
+		log.Println("Warning: bad request: " + c.Query("rows"))
+		c.AbortWithStatus(http.StatusBadRequest)
+		approved = false
+		return
+	}
+	if columns > maxPixelColumns {
+		log.Println("Notice: ", c.ClientIP(),
+			": request entity too large: ",
+			"request columns ", columns,
+			" is over max allowed of ", maxPixelColumns)
+		c.AbortWithStatus(http.StatusRequestEntityTooLarge)
+		approved = false
+		return
+	}
+	if rows > maxPixelRows {
+		log.Println("Notice: ", c.ClientIP(),
+			": request entity too large: ",
+			"request rows ", rows,
+			" is over max allowed of ", maxPixelRows)
+		c.AbortWithStatus(http.StatusRequestEntityTooLarge)
+		approved = false
+		return
+	}
+	approved = true
+	return
 }
 
 func main() {
@@ -283,55 +349,18 @@ func main() {
 	r.SetTrustedProxies(nil)
 	r.Use(middleware)
 	r.GET("/ws", func(c *gin.Context) {
-		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-		if err != nil {
-			log.Println("error: ", err)
-			c.JSON(http.StatusInternalServerError,
-				gin.H{"error": err.Error()})
-			return
-		}
-
-		clients[conn] = make(chan pixelData)
-		// using Gin's IP format for consistency
-		ip := c.ClientIP()
-		go handleWebSocketConnection(conn, &db, &ip)
+		createWebSocket(c, &db)
 	})
 	r.GET("/", func(c *gin.Context) {
 		ip := c.ClientIP()
-
 		if approved, _ := approveGetRequest(&ip, &db); !approved {
 			log.Println("Notice: ", ip, ": too many requests")
 			c.AbortWithStatus(http.StatusTooManyRequests)
 			return
 		}
 
-		columns, err := strconv.Atoi(c.Query("columns"))
-		if err != nil {
-			log.Println("Warning: bad request: " + c.Query("columns"))
-			c.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-		rows, err := strconv.Atoi(c.Query("rows"))
-		if err != nil {
-			log.Println("Warning: bad request: " + c.Query("rows"))
-			c.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-
-		if columns > maxPixelColumns {
-			log.Println("Notice: ", ip,
-				": request entity too large: ",
-				"request columns ", columns,
-				" is over max allowed of ", maxPixelColumns)
-			c.AbortWithStatus(http.StatusRequestEntityTooLarge)
-			return
-		}
-		if rows > maxPixelRows {
-			log.Println("Notice: ", ip,
-				": request entity too large: ",
-				"request rows ", rows,
-				" is over max allowed of ", maxPixelRows)
-			c.AbortWithStatus(http.StatusRequestEntityTooLarge)
+		columns, rows, approved := checkGridDimensions(c)
+		if !approved {
 			return
 		}
 
@@ -346,7 +375,7 @@ func main() {
 		}
 		c.Data(http.StatusOK, "application/json", data)
 		// Forbid GET spam
-		startgetTimeout(&ip, &db)
+		startGetTimeout(&ip, &db)
 	})
 	go handleBroadcast()
 
