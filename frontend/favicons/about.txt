@@ -1,0 +1,6 @@
+This favicon was generated using the following font:
+
+- Font Title: Tiro Devanagari Hindi
+- Font Author: Copyright 2020 The Indigo Project Authors (https://github.com/TiroTypeworks/Indigo)
+- Font Source: http://fonts.gstatic.com/s/tirodevanagarihindi/v5/55xyezN7P8T4e0_CfIJrwdodg9HoYw0i-M9fSOkOfG0Y3A.ttf
+- Font License: SIL Open Font License, 1.1 (http://scripts.sil.org/OFL))
