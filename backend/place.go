@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -58,6 +59,8 @@ func middleware(c *gin.Context) {
 }
 
 var (
+	discordUrl = os.Getenv("PLACE_DISCORD_NOTIFICATION_URL")
+	discordEnabled = len(discordUrl) > 0
 	clients     = make(map[*websocket.Conn]chan pixelData)
 	broadcast   = make(chan pixelData)
 	clientMutex sync.Mutex
@@ -72,15 +75,16 @@ var (
 
 const maxPixelRows = 1024
 const maxPixelColumns = 1024
-const colorDefault = "#FFFFFF"
+const colorDefault = "#D9D3D9"
 
 type pixelData struct {
 	X     string `json:"x"`
 	Y     string `json:"y"`
 	Color string `json:"color"`
+	UserId string `json:"userId"`
 }
 
-const getTimeout time.Duration = 10 * time.Millisecond
+const getTimeout time.Duration = 5 * time.Second
 const setTimeout time.Duration = 20 * time.Second
 
 func startSetTimeout(ip *string, db *database) {
@@ -93,7 +97,7 @@ func startGetTimeout(ip *string, db *database) {
 	db.client.Set(db.context, "get_timeout:"+*ip, now, getTimeout)
 }
 
-func approveSetRequest(ip *string, db *database) (bool, time.Duration) {
+func approveSetRequest(ip *string, db *database) (approved bool, timeLeft time.Duration) {
 	data, err := db.client.Get(db.context, "set_timeout:"+*ip).Result()
 	// Timeouts in Redis are set to expire
 	if err == redis.Nil {
@@ -106,7 +110,7 @@ func approveSetRequest(ip *string, db *database) (bool, time.Duration) {
 	return false, setTimeout - time.Since(since)
 }
 
-func approveGetRequest(ip *string, db *database) (bool, time.Duration) {
+func approveGetRequest(ip *string, db *database) (approved bool, timeLeft time.Duration) {
 	data, err := db.client.Get(db.context, "get_timeout:"+*ip).Result()
 	// Timeouts in Redis are set to expire
 	if err == redis.Nil {
@@ -183,6 +187,32 @@ func marshalPayload(conn *websocket.Conn, payload []byte, pixel *pixelData) (suc
 	return
 }
 
+func sendDiscordNotification(pixel pixelData) {
+	data, err := json.Marshal(&pixel)
+	if err != nil {
+		panic(err)
+	}
+	res, err := http.Post(discordUrl, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		panic(err);
+	}
+	defer res.Body.Close()
+	type body struct {
+		Error string
+		Message string
+	}
+	var b body
+	err = json.NewDecoder(res.Body).Decode(&b)
+	if err != nil {
+		panic(err)
+	}
+	if res.StatusCode == http.StatusOK {
+		log.Println("debug: "+ b.Message)
+	} else {
+		log.Println("Warning: "+ b.Error)
+	}
+}
+
 func handleWebSocketConnection(conn *websocket.Conn, db *database, ip *string) {
 	type WebSocketMessage struct {
 		Type    int
@@ -252,6 +282,11 @@ func handleWebSocketConnection(conn *websocket.Conn, db *database, ip *string) {
 				go read()
 				continue
 			}
+
+			if discordEnabled {
+				go sendDiscordNotification(pixel)
+			}
+
 			err = allowPixelPlacement(conn, db, ip, pixel)
 			if err != nil {
 				log.Println("Warning: ", err)
@@ -339,7 +374,7 @@ func main() {
 	db := getDatabaseConnection()
 	defer db.client.Close()
 
-	var debugMode bool = os.Getenv("PLACE_RELEASE_BUILD") != "release"
+	var debugMode bool = os.Getenv("PLACE_DEBUG_ENABLED") != ""
 	if !debugMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -351,9 +386,13 @@ func main() {
 	})
 	r.GET("/", func(c *gin.Context) {
 		ip := c.ClientIP()
-		if approved, _ := approveGetRequest(&ip, &db); !approved {
+		if approved, timeLeft := approveGetRequest(&ip, &db); !approved {
 			log.Println("Notice: ", ip, ": too many requests")
-			c.AbortWithStatus(http.StatusTooManyRequests)
+			data :=map[string]interface{}{
+				"retryAfter":	timeLeft.Milliseconds(),
+				"message":	"Too many requests. Please try again later.",
+			}
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, data)
 			return
 		}
 
@@ -364,14 +403,11 @@ func main() {
 
 		pixels := getPixels(&db, columns, rows)
 		_, timeLeft := approveSetRequest(&ip, &db)
-		data, err := json.Marshal(map[string]interface{}{
+		data := map[string]interface{}{
 			"pixels":   pixels,
 			"timeLeft": timeLeft.Seconds(),
-		})
-		if err != nil {
-			panic(err)
 		}
-		c.Data(http.StatusOK, "application/json", data)
+		c.JSON(http.StatusOK, data)
 		// Forbid GET spam
 		startGetTimeout(&ip, &db)
 	})
@@ -379,11 +415,22 @@ func main() {
 
 	port := os.Getenv("PLACE_PORT")
 	if port == "" {
+		log.Println("Info: default port 37372 chosen.")
 		port = "37372"
 	}
-	if !debugMode {
-		r.RunTLS(":"+port, "fullchain.pem", "privkey.pem")
-	} else {
+	if os.Getenv("PLACE_HTTPS_DISABLED") != "" {
 		r.Run(":" + port)
+	} else {
+		cert := os.Getenv("PLACE_TLS_CERT_FILE_PATH")
+		key := os.Getenv("PLACE_TLS_KEY_FILE_PATH")
+		if cert == "" {
+			cert = "fullchain.pem"
+			log.Println("Info: no default TLS certificate found, using default ", cert)
+		}
+		if key == "" {
+			cert = "privkey.pem"
+			log.Println("Info: no default TLS key found, using default ", cert)
+		}
+		r.RunTLS(":"+port, cert, key)
 	}
 }

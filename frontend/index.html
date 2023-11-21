@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>r/place Clone</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/favicons/site.webmanifest">
+
+    <link rel="stylesheet" href="https://unpkg.com/bulma@0.9.4/css/bulma.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-switch@2.0.4/dist/css/bulma-switch.min.css"/>
+    <style>
+      
+      #canvas-container {
+          display: flex;
+      }
+    </style>
+  </head>
+
+  <body>
+    <section id="hero" class="hero is-fullheight is-dark">
+      <div id="head" class="hero-head has-background-black">
+	<nav id="navbar" class="navbar is-dark">
+	  <div class="navbar-brand">
+	    <span id="timer-container" class="navbar-item icon-text is-invisible">
+	      <span class="icon">
+		<i class="fas fa-clock"></i>
+	      </span>
+	      <span id="timer"></span>
+	    </span>
+            <span class="navbar-burger burger" data-target="nav-menu">
+	      <span></span>
+	      <span></span>
+	      <span></span>
+            </span>
+	  </div>
+	  <div id="nav-menu" class="navbar-menu has-background-black">
+            <div class="navbar-end">
+	      <div class="navbar-item is-hoverable">
+		<div class="field">
+		  <input id="dark-mode-switch" type="checkbox" class="switch" checked>
+		  <label for="dark-mode-switch">Dark Mode</label>
+		</div>
+	      </div>
+              <a href="https://github.com/RolandMarchand/place" target="_blank" class="navbar-item"><i class="fa-brands fa-github"></i> Github</a>
+              <a id="login" href="https://discord.com/api/oauth2/authorize?client_id=1174181655620091945&redirect_uri=https%3A%2F%2Flocalhost%3A8080&response_type=token&scope=identify" class="navbar-item is-hidden">
+		<i class="fa-brands fa-discord"></i> Sign In
+	      </a>
+              <div id="account" class="navbar-item has-dropdown border-radius is-hoverable is-hidden">
+		<a class="navbar-link">
+		  <i class="fa-brands fa-discord"></i>
+		   Account
+		</a>
+		<div id="navbar-dropdown" class="navbar-dropdown is-right has-background-black">
+		  <a id="username" target="_blank" class="navbar-item is-expanded pr-3"></a>
+		  <a id="sign-out" class="navbar-item is-expanded pr-3">Sign out</a>
+		</div>
+              </div>
+            </div>
+	  </div>
+	</nav>
+      </div>
+      
+      <div id="body" class="hero-body m-0 p-0">
+	<div id="error-container" class="container is-hidden">
+	  <div class="content has-text-centered">
+	    <h1 id="error-header" class="has-text-white"></h1>
+	    <p id="error-body" class="has-text-white"></p>
+	  </div>
+	</div>
+	<div id="loading-container" class="column m-6 p-6 has-text-white">
+	  <progress class="progress is-small is-primary" max="100"></progress>
+	</div>
+	
+	<div id="canvas-container" class="content has-background-black-bis is-hidden">
+	  <canvas id="canvas">
+	    <h1>Please use a browser that supports canvas.</h1>
+	  </canvas>
+	</div>
+      </div>
+      
+      <div id="foot" class="hero-foot has-background-black">
+	<button id="show-colors" class="button is-rounded is-large is-responsive m-3 is-hidden" style="position: absolute; z-index: 1; bottom: 0; right: 0;">
+	  <i class="fa-solid fa-palette"></i> colors
+	</button>
+	<div id="colors-container" class="block m-5">
+	  <button id="hide-colors" class="delete is-pulled-right is-medium"></button>
+	  <div id="color-palette" class="buttons are-small is-centered">
+	  </div>
+	</div>
+      </div>
+    </section>
+    
+    <script src="script.js"></script>
+    <script src="https://kit.fontawesome.com/e0f79bd0e0.js" crossorigin="anonymous"></script>
+  </body>
+</html>
