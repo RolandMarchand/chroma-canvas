@@ -363,6 +363,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	window.history.replaceState({}, document.title, window.location.pathname);
 	document.getElementById('account').classList.add('is-hidden');	
 	document.getElementById('login').classList.remove('is-hidden');
+	discordUserId = "";
     }
 
     const fragment = new URLSearchParams(window.location.hash.slice(1));
