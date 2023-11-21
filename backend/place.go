@@ -148,7 +148,7 @@ func denyPixelPlacement(conn *websocket.Conn, ip *string) error {
 	msg := "rate limit exceeded of 1 request per " +
 		seconds + " seconds"
 	data, _ := json.Marshal(map[string]string{
-		"Error": msg,
+		"error": msg,
 	})
 	log.Println("Notice: ", ip, string(msg))
 	err := conn.WriteMessage(websocket.TextMessage, data)
