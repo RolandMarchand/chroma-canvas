@@ -32,8 +32,12 @@ This project is a simplified version of the popular r/Place platform, allowing u
 - `REDIS_PASSWORD` defaults to nothing
 - `REDIS_DATABASE` defaults to 0
 - `REDIS_ADDRESS` defaults to `localhost:6379`
-- `PLACE_RELEASE_BUILD` has 2 values: `release` and anything else is considered `debug`
+- `PLACE_DEBUG_ENABLED` defaults to empty, any non-empty value is true
+- `PLACE_HTTPS_DISABLED` defaults to empty, any non-empty value is true
 - `PLACE_PORT` defaults to 37372
+- `PLACE_POST_PIXEL_URL` sends a POST request to a web server, empty and so disabled by default
+- `PLACE_TLS_CERT_FILE_PATH` defaults to `fullchain.pem`
+- `PLACE_TLS_KEY_FILE_PATH` defaults to `privkey.pem`
 
 ### Contributing
 

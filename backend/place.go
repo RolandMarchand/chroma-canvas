@@ -59,8 +59,8 @@ func middleware(c *gin.Context) {
 }
 
 var (
-	discordUrl = os.Getenv("PLACE_DISCORD_NOTIFICATION_URL")
-	discordEnabled = len(discordUrl) > 0
+	postUrl = os.Getenv("PLACE_POST_PIXEL_URL")
+	postEnabled = len(postUrl) > 0
 	clients     = make(map[*websocket.Conn]chan pixelData)
 	broadcast   = make(chan pixelData)
 	clientMutex sync.Mutex
@@ -187,12 +187,12 @@ func marshalPayload(conn *websocket.Conn, payload []byte, pixel *pixelData) (suc
 	return
 }
 
-func sendDiscordNotification(pixel pixelData) {
+func postNotification(pixel pixelData) {
 	data, err := json.Marshal(&pixel)
 	if err != nil {
 		panic(err)
 	}
-	res, err := http.Post(discordUrl, "application/json", bytes.NewBuffer(data))
+	res, err := http.Post(postUrl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		panic(err);
 	}
@@ -283,8 +283,8 @@ func handleWebSocketConnection(conn *websocket.Conn, db *database, ip *string) {
 				continue
 			}
 
-			if discordEnabled {
-				go sendDiscordNotification(pixel)
+			if postEnabled {
+				go postNotification(pixel)
 			}
 
 			err = allowPixelPlacement(conn, db, ip, pixel)
