@@ -60,7 +60,7 @@ func middleware(c *gin.Context) {
 }
 
 var (
-	postUrl = os.Getenv("PLACE_POST_PIXEL_URL")
+	postUrl = os.Getenv("CHROMA_CANVAS_POST_PIXEL_URL")
 	postEnabled = len(postUrl) > 0
 	clients     = make(map[*websocket.Conn]chan pixelData)
 	broadcast   = make(chan pixelData)
@@ -378,7 +378,7 @@ func main() {
 	db := getDatabaseConnection()
 	defer db.client.Close()
 
-	var debugMode bool = os.Getenv("PLACE_DEBUG_ENABLED") != ""
+	var debugMode bool = os.Getenv("CHROMA_CANVAS_DEBUG_ENABLED") != ""
 	if !debugMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -417,16 +417,16 @@ func main() {
 	})
 	go handleBroadcast()
 
-	port := os.Getenv("PLACE_PORT")
+	port := os.Getenv("CHROMA_CANVAS_PORT")
 	if port == "" {
 		log.Println("Info: default port 37372 chosen.")
 		port = "37372"
 	}
-	if os.Getenv("PLACE_HTTPS_DISABLED") != "" {
+	if os.Getenv("CHROMA_CANVAS_HTTPS_DISABLED") != "" {
 		r.Run(":" + port)
 	} else {
-		cert := os.Getenv("PLACE_TLS_CERT_FILE_PATH")
-		key := os.Getenv("PLACE_TLS_KEY_FILE_PATH")
+		cert := os.Getenv("CHROMA_CANVAS_TLS_CERT_FILE_PATH")
+		key := os.Getenv("CHROMA_CANVAS_TLS_KEY_FILE_PATH")
 		if cert == "" {
 			err := "Error: no default TLS certificate specified"
 			log.Println(err)

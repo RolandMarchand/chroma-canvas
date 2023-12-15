@@ -22,7 +22,7 @@ This project is a simplified version of the popular r/Place platform, allowing u
 
 ### Usage
 
-1. Open the application in your web browser at [lazarusoverlook.com/place](https://lazarusoverlook.com/place/).
+1. Open the application in your web browser at [lazarusoverlook.com/chroma-canvas](https://lazarusoverlook.com/chroma-canvas/).
 2. Choose a color from the palette.
 3. Click on the canvas to place pixels collaboratively with other users.
 
@@ -32,12 +32,12 @@ This project is a simplified version of the popular r/Place platform, allowing u
 - `REDIS_PASSWORD` defaults to nothing
 - `REDIS_DATABASE` defaults to 0
 - `REDIS_ADDRESS` defaults to `localhost:6379`
-- `PLACE_DEBUG_ENABLED` defaults to empty, any non-empty value is true
-- `PLACE_HTTPS_DISABLED` defaults to empty, any non-empty value is true
-- `PLACE_PORT` defaults to 37372
-- `PLACE_POST_PIXEL_URL` sends a POST request to a web server, empty and so disabled by default
-- `PLACE_TLS_CERT_FILE_PATH` defaults to nothing, and so fails if HTTPS is enabled.
-- `PLACE_TLS_KEY_FILE_PATH` defaults to nothing, and so fails if HTTPS is enabled.
+- `CHROMA_CANVAS_DEBUG_ENABLED` defaults to empty, any non-empty value is true
+- `CHROMA_CANVAS_HTTPS_DISABLED` defaults to empty, any non-empty value is true
+- `CHROMA_CANVAS_PORT` defaults to 37372
+- `CHROMA_CANVAS_POST_PIXEL_URL` sends a POST request to a web server, empty and so disabled by default
+- `CHROMA_CANVAS_TLS_CERT_FILE_PATH` defaults to nothing, and so fails if HTTPS is enabled.
+- `CHROMA_CANVAS_TLS_KEY_FILE_PATH` defaults to nothing, and so fails if HTTPS is enabled.
 
 ### Contributing
 
