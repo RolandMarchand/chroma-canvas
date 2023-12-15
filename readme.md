@@ -1,4 +1,4 @@
-## Laz's Place
+## Chroma Canvas
 ### Overview
 
 This project is a simplified version of the popular r/Place platform, allowing users to collaboratively create a shared canvas by placing pixels on a grid. It is a fun and interactive way for users to express their creativity and build a collaborative digital artwork.
@@ -36,8 +36,8 @@ This project is a simplified version of the popular r/Place platform, allowing u
 - `PLACE_HTTPS_DISABLED` defaults to empty, any non-empty value is true
 - `PLACE_PORT` defaults to 37372
 - `PLACE_POST_PIXEL_URL` sends a POST request to a web server, empty and so disabled by default
-- `PLACE_TLS_CERT_FILE_PATH` defaults to `fullchain.pem`
-- `PLACE_TLS_KEY_FILE_PATH` defaults to `privkey.pem`
+- `PLACE_TLS_CERT_FILE_PATH` defaults to nothing, and so fails if HTTPS is enabled.
+- `PLACE_TLS_KEY_FILE_PATH` defaults to nothing, and so fails if HTTPS is enabled.
 
 ### Contributing
 
