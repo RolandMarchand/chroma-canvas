@@ -27,6 +27,7 @@ func getDatabaseConnection() database {
 	db, _ := strconv.Atoi(os.Getenv("REDIS_DATABASE"))
 	addr := os.Getenv("REDIS_ADDRESS")
 	if addr == "" {
+		log.Println("Warning: no Redis address selected, using localhost:6379")
 		addr = "localhost:6379"
 	}
 
@@ -75,7 +76,7 @@ var (
 
 const maxPixelRows = 1024
 const maxPixelColumns = 1024
-const colorDefault = "#D9D3D9"
+const colorDefault = "#ffffff"
 
 type pixelData struct {
 	X     string `json:"x"`
@@ -192,24 +193,27 @@ func postNotification(pixel pixelData) {
 	if err != nil {
 		panic(err)
 	}
+
 	res, err := http.Post(postUrl, "application/json", bytes.NewBuffer(data))
 	if err != nil {
-		panic(err);
+		log.Println("Warning: ", err);
+		return;
 	}
 	defer res.Body.Close()
-	type body struct {
+
+	var body struct {
 		Error string
 		Message string
 	}
-	var b body
-	err = json.NewDecoder(res.Body).Decode(&b)
+	err = json.NewDecoder(res.Body).Decode(&body)
 	if err != nil {
 		panic(err)
 	}
+
 	if res.StatusCode == http.StatusOK {
-		log.Println("debug: "+ b.Message)
+		log.Println("debug: "+ body.Message)
 	} else {
-		log.Println("Warning: "+ b.Error)
+		log.Println("Warning: "+ body.Error)
 	}
 }
 
@@ -424,12 +428,14 @@ func main() {
 		cert := os.Getenv("PLACE_TLS_CERT_FILE_PATH")
 		key := os.Getenv("PLACE_TLS_KEY_FILE_PATH")
 		if cert == "" {
-			cert = "fullchain.pem"
-			log.Println("Info: no default TLS certificate found, using default ", cert)
+			err := "Error: no default TLS certificate specified"
+			log.Println(err)
+			panic(err)
 		}
 		if key == "" {
-			cert = "privkey.pem"
-			log.Println("Info: no default TLS key found, using default ", cert)
+			err := "Error: no default TLS key specified"
+			log.Println(err)
+			panic(err)
 		}
 		r.RunTLS(":"+port, cert, key)
 	}

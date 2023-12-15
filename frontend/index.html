@@ -2,27 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>r/place Clone</title>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Chroma Canvas</title>
 
     <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
     <link rel="manifest" href="/favicons/site.webmanifest">
 
-    <link rel="stylesheet" href="https://unpkg.com/bulma@0.9.4/css/bulma.min.css"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma-switch@2.0.4/dist/css/bulma-switch.min.css"/>
+    <link rel="stylesheet" href="bulma.min.css"/>
+    <link rel="stylesheet" href="bulma-switch.min.css"/>
     <style>
-      
-      #canvas-container {
+      html {
+	  overflow-y: hidden;
+      }
+      canvas {
           display: flex;
+	  position: absolute;
+	  border:1px solid #d4d7d9;
+      }
+      .canvas-dark {
+	  border:1px solid #515252;
       }
     </style>
   </head>
 
-  <body>
+  <body style="overflow: hidden; overflow-y: hidden;">
     <section id="hero" class="hero is-fullheight is-dark">
-      <div id="head" class="hero-head has-background-black">
+      <div id="head" class="hero-head has-background-black" style="z-index: 1;">
 	<nav id="navbar" class="navbar is-dark">
 	  <div class="navbar-brand">
 	    <span id="timer-container" class="navbar-item icon-text is-invisible">
@@ -64,7 +71,7 @@
 	</nav>
       </div>
       
-      <div id="body" class="hero-body m-0 p-0">
+      <div id="body" class="hero-body m-0 p-0 has-background-black-bis" style="z-index: 0;">
 	<div id="error-container" class="container is-hidden">
 	  <div class="content has-text-centered">
 	    <h1 id="error-header" class="has-text-white"></h1>
@@ -74,15 +81,12 @@
 	<div id="loading-container" class="column m-6 p-6 has-text-white">
 	  <progress class="progress is-small is-primary" max="100"></progress>
 	</div>
-	
-	<div id="canvas-container" class="content has-background-black-bis is-hidden">
-	  <canvas id="canvas">
-	    <h1>Please use a browser that supports canvas.</h1>
-	  </canvas>
-	</div>
+	<canvas id="canvas" class="is-hidden canvas-dark" style="image-rendering: pixelated;">
+	  <h1>Please use a browser that supports canvas.</h1>
+	</canvas>
       </div>
       
-      <div id="foot" class="hero-foot has-background-black">
+      <div id="foot" class="hero-foot has-background-black" style="z-index: 1;">
 	<button id="show-colors" class="button is-rounded is-large is-responsive m-3 is-hidden" style="position: absolute; z-index: 1; bottom: 0; right: 0;">
 	  <i class="fa-solid fa-palette"></i> colors
 	</button>
@@ -95,6 +99,7 @@
     </section>
     
     <script src="script.js"></script>
-    <script src="https://kit.fontawesome.com/e0f79bd0e0.js" crossorigin="anonymous"></script>
+    <script src="fontawesome.min.js" crossorigin="anonymous"></script>
+    <script src="hammer.min.js"></script>
   </body>
 </html>
