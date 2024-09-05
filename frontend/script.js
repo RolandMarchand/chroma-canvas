@@ -1,10 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Conditionally set server address and protocol based on the environment
-    let isLocal = window.location.hostname === 'localhost'
-	  || window.location.hostname === '127.0.0.1';
-    const serverAddress = isLocal
-	  ? window.location.hostname + ':37372'
-	  : 'lazarusoverlook.com:37372';
+    const serverAddress = window.location.hostname + ':37372'
     const socket = window.location.protocol === 'http:'
 	  ? new WebSocket('ws://' + serverAddress + '/ws')
 	  : new WebSocket('wss://' + serverAddress + '/ws');
